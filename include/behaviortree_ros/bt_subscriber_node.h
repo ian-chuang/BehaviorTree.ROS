@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef BEHAVIOR_TREE_BT_SUSCRIBER_NODE_HPP_
-#define BEHAVIOR_TREE_BT_SUSCRIBER_NODE_HPP_
+#ifndef BEHAVIOR_TREE_BT_SUBSCRIBER_NODE_HPP_
+#define BEHAVIOR_TREE_BT_SUBSCRIBER_NODE_HPP_
 
 #include <behaviortree_cpp/action_node.h>
 #include <behaviortree_cpp/bt_factory.h>
@@ -166,4 +166,4 @@ template <class DerivedT> static
 
 }  // namespace BT
 
-#endif  // BEHAVIOR_TREE_BT_SUSCRIBER_NODE_HPP_
+#endif  // BEHAVIOR_TREE_BT_SUBSCRIBER_NODE_HPP_
