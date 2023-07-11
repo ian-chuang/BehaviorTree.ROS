@@ -193,14 +193,16 @@ int main(int argc, char **argv)
 
   NodeStatus status = NodeStatus::IDLE;
 
-  while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
-  {
-    ros::spinOnce();
-    status = tree.tickRoot();
-    std::cout << status << std::endl;
-    ros::Duration sleep_time(0.01);
-    sleep_time.sleep();
-  }
+  // while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
+  // {
+  //   tree.
+
+  //   ros::spinOnce();
+  //   status = tree.tickRoot();
+  //   std::cout << status << std::endl;
+  //   ros::Duration sleep_time(0.01);
+  //   sleep_time.sleep();
+  // }
 
   return 0;
 }

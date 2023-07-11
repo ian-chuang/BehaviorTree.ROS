@@ -16,8 +16,8 @@
 #ifndef BEHAVIOR_TREE_BT_ACTION_NODE_HPP_
 #define BEHAVIOR_TREE_BT_ACTION_NODE_HPP_
 
-#include <behaviortree_cpp_v3/action_node.h>
-#include <behaviortree_cpp_v3/bt_factory.h>
+#include <behaviortree_cpp/action_node.h>
+#include <behaviortree_cpp/bt_factory.h>
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -155,10 +155,22 @@ protected:
     {
       return onFailedRequest( REJECTED_BY_SERVER );
     }
-    else
+    else if ( action_state == actionlib::SimpleClientGoalState::LOST ) {
+      ROS_INFO("LOST state in RosActionNode::tick()");
+      return onFailedRequest( REJECTED_BY_SERVER );
+    }
+    else if ( action_state == actionlib::SimpleClientGoalState::RECALLED ) {
+      ROS_INFO("RECALLED state in RosActionNode::tick()");
+      return onFailedRequest( REJECTED_BY_SERVER );
+    }
+    else if ( action_state == actionlib::SimpleClientGoalState::PREEMPTED ) {
+      ROS_INFO("PREEMPTED state in RosActionNode::tick()");
+      return onFailedRequest( REJECTED_BY_SERVER );
+    }
+    else 
     {
-      // FIXME: is there any other valid state we should consider?
-      throw std::logic_error("Unexpected state in RosActionNode::tick()");
+      ROS_INFO("UNKNOWN ERROR");
+      return onFailedRequest( REJECTED_BY_SERVER );
     }
   }
 };

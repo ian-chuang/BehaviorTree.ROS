@@ -13,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef BEHAVIOR_TREE_BT_SERVICE_NODE_HPP_
-#define BEHAVIOR_TREE_BT_SERVICE_NODE_HPP_
+#ifndef BEHAVIOR_TREE_BT_SUSCRIBER_NODE_HPP_
+#define BEHAVIOR_TREE_BT_SUSCRIBER_NODE_HPP_
 
-#include <behaviortree_cpp_v3/action_node.h>
-#include <behaviortree_cpp_v3/bt_factory.h>
+#include <behaviortree_cpp/action_node.h>
+#include <behaviortree_cpp/bt_factory.h>
 #include <ros/ros.h>
-#include <ros/service_client.h>
 #include <mutex>
 
 namespace BT
@@ -167,4 +166,4 @@ template <class DerivedT> static
 
 }  // namespace BT
 
-#endif  // BEHAVIOR_TREE_BT_SERVICE_NODE_HPP_
+#endif  // BEHAVIOR_TREE_BT_SUSCRIBER_NODE_HPP_
