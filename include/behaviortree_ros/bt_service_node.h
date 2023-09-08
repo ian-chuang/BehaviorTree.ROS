@@ -57,7 +57,7 @@ public:
   }
 
   /// User must implement this method.
-  virtual void sendRequest(RequestType& request) = 0;
+  virtual bool sendRequest(RequestType& request) = 0;
 
   /// Method (to be implemented by the user) to receive the reply.
   /// User can decide which NodeStatus it will return (SUCCESS or FAILURE).
@@ -100,7 +100,11 @@ protected:
     }
 
     typename ServiceT::Request request;
-    sendRequest(request);
+    bool valid_request = sendRequest(request);
+    if( !valid_request )
+    {
+      return NodeStatus::FAILURE;
+    }
     bool received = service_client_.call( request, reply_ );
     if( !received )
     {
