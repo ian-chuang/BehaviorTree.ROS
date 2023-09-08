@@ -142,15 +142,6 @@ RosActionNode<behaviortree_ros::FibonacciAction>(handle, name, conf) {}
     return NodeStatus::FAILURE;
   }
 
-  void halt() override
-  {
-    if( status() == NodeStatus::RUNNING )
-    {
-      ROS_WARN("FibonacciAction halted");
-      BaseClass::halt();
-    }
-  }
-
 private:
   int expected_result_;
 };
