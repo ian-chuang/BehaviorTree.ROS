@@ -16,7 +16,7 @@
 #ifndef BEHAVIOR_TREE_BT_SERVICE_NODE_HPP_
 #define BEHAVIOR_TREE_BT_SERVICE_NODE_HPP_
 
-#include <behaviortree_cpp/action_node.h>
+#include <behaviortree_ros/bt_async_behavior.h>
 #include <behaviortree_cpp/bt_factory.h>
 #include <ros/ros.h>
 #include <ros/service_client.h>
@@ -28,12 +28,12 @@ namespace BT
  * Base Action to implement a ROS Service
  */
 template<class ServiceT>
-class RosServiceNode : public BT::SyncActionNode
+class RosServiceNode : public BT::AsyncBehaviorBase
 {
 protected:
 
   RosServiceNode(ros::NodeHandle& nh, const std::string& name, const BT::NodeConfiguration & conf):
-   BT::SyncActionNode(name, conf), node_(nh) { }
+   BT::AsyncBehaviorBase(name, conf), node_(nh) { }
 
 public:
 
@@ -53,7 +53,7 @@ public:
     return  {
       InputPort<std::string>("service_name", "name of the ROS service"),
       InputPort<unsigned>("timeout", 100, "timeout to connect to server (milliseconds)")
-      };
+    };
   }
 
   /// User must implement this method.
@@ -83,15 +83,20 @@ protected:
   // The node that will be used for any ROS operations
   ros::NodeHandle& node_;
 
-  BT::NodeStatus tick() override
+  BT::NodeStatus doWork() override
   {
-    if( !service_client_.isValid() ){
-      std::string server = getInput<std::string>("service_name").value();
-      service_client_ = node_.serviceClient<ServiceT>( server );
+    std::string service_name;
+    if (!getInput<std::string>("service_name", service_name)) {
+      ROS_ERROR("Missing required input [service_name]");
+      return NodeStatus::FAILURE;
     }
+    service_client_ = node_.serviceClient<ServiceT>( service_name );
 
     unsigned msec;
-    getInput("timeout", msec);
+    if (!getInput<unsigned>("timeout", msec)) {
+      ROS_ERROR("Missing required input [timeout]");
+      return NodeStatus::FAILURE;
+    }
     ros::Duration timeout(static_cast<double>(msec) * 1e-3);
 
     bool connected = service_client_.waitForExistence(timeout);
@@ -105,6 +110,7 @@ protected:
     {
       return NodeStatus::FAILURE;
     }
+
     bool received = service_client_.call( request, reply_ );
     if( !received )
     {

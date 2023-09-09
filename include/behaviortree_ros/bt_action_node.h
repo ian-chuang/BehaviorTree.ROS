@@ -1,18 +1,3 @@
-// Copyright (c) 2019 Samsung Research America
-// Copyright (c) 2020 Davide Faconti
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef BEHAVIOR_TREE_BT_ACTION_NODE_HPP_
 #define BEHAVIOR_TREE_BT_ACTION_NODE_HPP_
 
@@ -23,18 +8,6 @@
 
 namespace BT
 {
-
-  /** Helper Node to call an actionlib::SimpleActionClient<>
-   * inside a BT::ActionNode.
-   *
-   * Note that the user must implement the methods:
-   *
-   *  - sendGoal
-   *  - onResult
-   *  - onFailedRequest
-   *  - halt (optionally)
-   *
-   */
   template <class ActionT>
   class RosActionNode : public BT::StatefulActionNode
   {
@@ -76,7 +49,10 @@ namespace BT
     {
       MISSING_SERVER = 0,
       ABORTED_BY_SERVER = 1,
-      REJECTED_BY_SERVER = 2
+      REJECTED_BY_SERVER = 2,
+      LOST_BY_SERVER = 3,
+      RECALLED_BY_SERVER = 4,
+      PREEMPTED_BY_SERVER = 5
     };
 
     /// Called when a service call failed. Can be overriden by the user.
@@ -88,7 +64,6 @@ namespace BT
   protected:
     std::shared_ptr<ActionClientType> action_client_;
     ros::Duration timeout_;
-
     ros::NodeHandle &node_;
 
     NodeStatus onStart() override
@@ -133,7 +108,6 @@ namespace BT
         return onFailedRequest(MISSING_SERVER);
       }
 
-      // RUNNING
       auto action_state = action_client_->getState();
 
       // Please refer to these states
@@ -156,20 +130,21 @@ namespace BT
       }
       else if (action_state == actionlib::SimpleClientGoalState::LOST)
       {
-        return onFailedRequest(REJECTED_BY_SERVER);
+        return onFailedRequest(LOST_BY_SERVER);
       }
       else if (action_state == actionlib::SimpleClientGoalState::RECALLED)
       {
-        return onFailedRequest(REJECTED_BY_SERVER);
+        return onFailedRequest(RECALLED_BY_SERVER);
       }
       else if (action_state == actionlib::SimpleClientGoalState::PREEMPTED)
       {
-        return onFailedRequest(REJECTED_BY_SERVER);
+        return onFailedRequest(PREEMPTED_BY_SERVER);
       }
       else
       {
         // this shouldn't happen
-        return onFailedRequest(REJECTED_BY_SERVER);
+        ROS_ERROR("Unknown action state");
+        return NodeStatus::FAILURE;
       }
     }
 

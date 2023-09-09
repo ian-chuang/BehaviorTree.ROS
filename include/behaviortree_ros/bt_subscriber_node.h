@@ -1,18 +1,3 @@
-// Copyright (c) 2019 Samsung Research America
-// Copyright (c) 2020 Davide Faconti
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef BEHAVIOR_TREE_BT_SUBSCRIBER_NODE_HPP_
 #define BEHAVIOR_TREE_BT_SUBSCRIBER_NODE_HPP_
 
@@ -38,10 +23,16 @@ protected:
     subscriber_status_ = NodeStatus::IDLE;
 
     unsigned msec;
-    getInput("timeout", msec);
+    if (!getInput<unsigned>("timeout", msec)) {
+      throw BT::RuntimeError("missing required input [timeout]");
+    }
     timeout = ros::Duration(static_cast<double>(msec) * 1e-3);
 
-    std::string topic = getInput<std::string>("topic_name").value();
+    std::string topic;
+    if (!getInput<std::string>("topic_name", topic)) {
+      throw BT::RuntimeError("missing required input [topic_name]");
+    }
+
     subscriber_client_ = node_.subscribe(topic, 1, &RosSubscriberNode<MessageT>::callback, this);
   }
 
@@ -69,7 +60,7 @@ public:
   void callback(const MessageT& msg)
   {
     NodeStatus new_status = onReceive(msg);
-    set_subscriber_status(new_status);
+    setSubscriberStatus(new_status);
   }
 
   /// Called when a service call failed. Can be overriden by the user.
@@ -93,29 +84,29 @@ protected:
   // The node that will be used for any ROS operations
   ros::NodeHandle& node_;
 
-  NodeStatus get_subscriber_status() {
+  NodeStatus getSubscriberStatus() {
     mutex.lock();
     NodeStatus current_status = subscriber_status_;
     mutex.unlock();
     return current_status;
   }
 
-  void set_subscriber_status(NodeStatus new_status) {
+  void setSubscriberStatus(NodeStatus new_status) {
     mutex.lock();
     subscriber_status_ = new_status;
     mutex.unlock();
   }
 
-  bool wait_for_message(ros::Duration timeout) {
+  bool waitForMessage(ros::Duration timeout) {
     ros::Time start_time = ros::Time::now();
     while (ros::ok()) {
       uint32_t num_publishers = subscriber_client_.getNumPublishers();
 
       if (num_publishers == 0) {
-        set_subscriber_status(NodeStatus::IDLE);
+        setSubscriberStatus(NodeStatus::IDLE);
       }
 
-      if (num_publishers > 0 && get_subscriber_status() != NodeStatus::IDLE) {
+      if (num_publishers > 0 && getSubscriberStatus() != NodeStatus::IDLE) {
         return true;
       }
       else {
@@ -125,7 +116,7 @@ protected:
             return false;
           }
         }
-        ros::Duration(0.02).sleep();
+        // ros::Duration(0.02).sleep();
       }
     }
     return false;
@@ -133,11 +124,11 @@ protected:
 
   BT::NodeStatus tick() override
   {
-    if( ! wait_for_message(timeout) ){
+    if( ! waitForMessage(timeout) ){
       return onFailedReceive();
     }
 
-    return get_subscriber_status();
+    return getSubscriberStatus();
   }
 };
 
